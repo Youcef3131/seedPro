@@ -62,16 +62,16 @@ path('employees/<int:employee_id>/<str:method>/<int:month>/<int:year>/', views.E
     path('shop/<int:shop_id>/products/<int:product_id>/', views.ShopProductDetailView.as_view(), name='shop_product_detail'), # one profuct in shop
 
     # Client 
-    path('clients/', views.ClientListView.as_view(), name='client-list'),
-    path('clients/<int:pk>/', views.ClientDetailView.as_view(), name='client-detail'),
+    path('clients/', views.ClientListView.as_view(), name='client-list'), #list + add
+    path('clients/<int:pk>/', views.ClientDetailView.as_view(), name='client-detail'), #get + update
+    path('<int:shop_id>/clients/', views.ShopClientsView.as_view(), name='shop-clients'), #works
     #suppliers
-    path('suppliers/', views.SupplierListView.as_view(), name='supplier-list'),
-    path('suppliers/<int:pk>/', views.SupplierDetailView.as_view(), name='supplier-detail'),
-
+    path('suppliers/', views.SupplierListView.as_view(), name='supplier-list'), #list + add
+    path('suppliers/<int:pk>/', views.SupplierDetailView.as_view(), name='supplier-detail'), #get + update
+      path('<int:shop_id>/suppliers/', views.ShopSuppliersView.as_view(), name='shop-suppliers'),#works
+    #coasts
     path('coasts/', views.CoastsListView.as_view(), name='coasts-list'),
-    path('coasts/<int:pk>/', views.CoastsDetailView.as_view(), name='coasts-detail'),
-    path('<int:shop_id>/clients/', views.ShopClientsView.as_view(), name='shop-clients'),
-    path('<int:shop_id>/suppliers/', views.ShopSuppliersView.as_view(), name='shop-suppliers'),
-    path('<int:shop_id>/coasts/', views.ShopCoastsView.as_view(), name='shop-coasts'),
-    path('get-shop-by-username/<str:username>/', views.get_shop_by_username, name='get_shop_by_username'),
+    path('coasts/<int:pk>/', views.CoastsDetailView.as_view(), name='coasts-detail'),  
+    path('<int:shop_id>/coasts/', views.ShopCoastsView.as_view(), name='shop-coasts'),#works
+
 ]

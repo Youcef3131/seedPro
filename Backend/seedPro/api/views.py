@@ -88,20 +88,6 @@ def logout(request):
     except Exception as e:
         # Handle any exceptions that may occur during logout
         return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)@api_view(["GET"])
-def get_shop_by_username(request, username):
-    try:
-        user = User.objects.get(username=username)
-    except User.DoesNotExist:
-        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    # Check if the user has an associated employee
-    if hasattr(user, 'employee') and user.employee:
-        # Serialize the Shop information associated with the Employee
-        shop_serializer = ShopSerializer(user.employee.shop)
-        return Response({"shop": shop_serializer.data}, status=status.HTTP_200_OK)
-    else:
-  
-        return Response({"detail": "User does not have an associated employee or shop"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(["GET"])
 def get_shop_by_username(request, username):
