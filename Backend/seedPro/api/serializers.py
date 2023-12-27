@@ -5,6 +5,8 @@ from rest_framework.authtoken.models import Token
 from .models import *
 from rest_framework import serializers, generics
 from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 class UserSerializer(ModelSerializer):
     class Meta:
@@ -28,10 +30,12 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# Example ShopSerializer
 class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
-        fields = ['name', 'address', 'is_master']
+        fields = '__all__'
+
 
 class PaymentTransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,6 +48,7 @@ class PresenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Presence
         fields = '__all__'
+        
 
 
 class EmployeeDetailsView(APIView):
@@ -115,3 +120,19 @@ class ListCreateCategoryView(generics.ListCreateAPIView):
 class RetrieveUpdateCategoryView(generics.RetrieveUpdateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+
+
+class ClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = '__all__'
+
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = '__all__'
+
+class CoastsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coasts
+        fields = '__all__'

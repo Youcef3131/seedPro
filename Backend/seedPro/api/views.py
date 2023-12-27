@@ -15,9 +15,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import *
 from rest_framework import generics
-from .permissions import IsAdminOrReadOnly
 from django.http import Http404
-
+from rest_framework.generics import *
 
 
 #signUp+ add employee login logout
@@ -36,7 +35,7 @@ def signup(request):
             'username': user.username,
             'password': request.data.get('password'),
             'monthly_salary': request.data.get('monthly_salary'),
-            
+            'shop' : request.data.get('shop')
         }
 
         employee_serializer = EmployeeSerializer(data=employee_data)
@@ -44,7 +43,7 @@ def signup(request):
             employee_serializer.save()
             token, _ = Token.objects.get_or_create(user=user)
             user_data = UserSerializer(user).data
-            
+            # Exclude the 'password' field from the response
             del user_data['password']
             return Response({"user": user_data, "token": token.key}, status=status.HTTP_201_CREATED)
         else:
@@ -52,6 +51,8 @@ def signup(request):
             return Response(employee_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(["POST"])
 def login(request):
     data = request.data
@@ -60,40 +61,17 @@ def login(request):
     if user:
         token, created_token = Token.objects.get_or_create(user=user)
 
-        # Include shop details in the response
-        shop_serializer = ShopSerializer(user.employee.shop)
         response_data = {
             'user': UserSerializer(user).data,
-            'shop': shop_serializer.data,
             'token': token.key,
         }
 
-        # Remove sensitive information
+        # Exclude the 'password' field from the response
         del response_data['user']['password']
 
         return Response(response_data)
 
     return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
-# @api_view(["POST"])
-# def login(request):
-#     data = request.data
-#     user = authenticate(username=data['username'], password=data['password'])
-
-#     if user:
-#         token, created_token = Token.objects.get_or_create(user=user)
-
-#         response_data = {
-#             'user': UserSerializer(user).data,
-#             'token': token.key,
-#         }
-
-
-#         del response_data['user']['password']
-
-#         return Response(response_data)
-
-#     return Response({"detail": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -104,15 +82,49 @@ def login(request):
 @permission_classes([IsAuthenticated])
 def logout(request):
     try:
-       
+        # Delete the authentication token associated with the user
         request.auth.delete()
         return Response({"message": "Logout was successful"}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # Handle any exceptions that may occur during logout
+        return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)@api_view(["GET"])
+def get_shop_by_username(request, username):
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    # Check if the user has an associated employee
+    if hasattr(user, 'employee') and user.employee:
+        # Serialize the Shop information associated with the Employee
+        shop_serializer = ShopSerializer(user.employee.shop)
+        return Response({"shop": shop_serializer.data}, status=status.HTTP_200_OK)
+    else:
+  
+        return Response({"detail": "User does not have an associated employee or shop"}, status=status.HTTP_404_NOT_FOUND)
 
-# get emplyees
+@api_view(["GET"])
+def get_shop_by_username(request, username):
+    try:
+        # First, try to find the user by username
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    # Check if the user has an associated employee
+    if hasattr(user, 'employee') and user.employee:
+        # Return the shop ID in the specified format
+        shop_id = user.employee.shop.id
+        return Response({"id": shop_id}, status=status.HTTP_200_OK)
+    else:
+        # If the user does not have an associated employee,
+        # try to find the employee by username and get the shop ID
+        try:
+            employee = Employee.objects.get(username=username)
+            shop_id = employee.shop.id
+            return Response({"id": shop_id}, status=status.HTTP_200_OK)
+        except Employee.DoesNotExist:
+            return Response({"detail": "User does not have an associated employee or shop"}, status=status.HTTP_404_NOT_FOUND)
 
 class ListEmployeesView(generics.ListAPIView):
     queryset = Employee.objects.all()
@@ -123,40 +135,51 @@ class ListEmployeesView(generics.ListAPIView):
 class RetrieveUpdateEmployeeView(generics.RetrieveUpdateAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    permission_classes = [IsAdminOrReadOnly]
-
-#add paymant transaction
-
-class AddPaymentTransactionView(generics.CreateAPIView):
+    
+class PaymentTransactionCreateView(generics.CreateAPIView):
     queryset = PaymentTransaction.objects.all()
     serializer_class = PaymentTransactionSerializer
-    permission_classes = [IsAdminOrReadOnly]
+
     def perform_create(self, serializer):
-        # Assuming 'employee_id' is passed in the request data
-        employee_id = self.request.data.get('employee_id')
+        employee_id = self.request.data.get('employee')
         employee = Employee.objects.get(pk=employee_id)
         serializer.save(employee=employee)
 
-#delete payment transaction
-
-class DeletePaymentTransactionView(generics.DestroyAPIView):
+class PaymentTransactionDeleteView(DestroyAPIView):
     queryset = PaymentTransaction.objects.all()
     serializer_class = PaymentTransactionSerializer
-    permission_classes = [IsAdminOrReadOnly]
 
-#add abcence 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+#add Presence 
 
-class AddAbsenceView(generics.CreateAPIView):
+class AddPresenceView(generics.CreateAPIView):
     queryset = Presence.objects.all()
     serializer_class = PresenceSerializer
-    def perform_create(self, serializer):
-        # Assuming 'employee_id' is passed in the request data
-        employee_id = self.request.data.get('employee_id')
-        employee = Employee.objects.get(pk=employee_id)
-        serializer.save(employee=employee)
+class EmployeePresenceInMonthView(generics.ListAPIView):
+    serializer_class = PresenceSerializer
 
-#Get Number of Presence in Month
+    def get_queryset(self):
+        employee_id = self.kwargs['employee_id']
+        month = self.kwargs['month']
 
+        # Add any additional validation as needed
+
+        # Retrieve presence entries for the specified employee and month
+        return Presence.objects.filter(
+            employee_id=employee_id,
+            presence_date__month=month
+        )
+
+class EmployeePaymentTransactionsView(generics.ListAPIView):
+    serializer_class = PaymentTransactionSerializer
+
+    def get_queryset(self):
+        # Get the employee_id from the URL parameters
+        employee_id = self.kwargs['employee_id']
+        return PaymentTransaction.objects.filter(employee_id=employee_id)
 #emplyee infos
 #shop
 class AddShopView(generics.CreateAPIView):
@@ -167,87 +190,86 @@ class ListShopsView(generics.ListAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
 
-#product
-class ProductView(APIView):
-    def get(self, request, product_id):
-        try:
-            product = Product.objects.get(pk=product_id)
-        except Product.DoesNotExist:
-            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+#product 
+class ProductListView(generics.ListCreateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
-        serializer = ProductSerializer(product)
-        return Response(serializer.data)
+class ProductDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
-    def post(self, request):
-        serializer = ProductSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class ShopProductsView(generics.ListAPIView):
+    serializer_class = ProductInShopSerializer
 
-    def put(self, request, product_id):
-        try:
-            product = Product.objects.get(pk=product_id)
-        except Product.DoesNotExist:
-            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ProductSerializer(product, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, product_id):
-        try:
-            product = Product.objects.get(pk=product_id)
-        except Product.DoesNotExist:
-            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        product.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_queryset(self):
+        shop_id = self.kwargs['shop_id']
+        return ProductInShop.objects.filter(shop_id=shop_id)
 
 
-class ProductInShopView(APIView):
-    def get(self, request, product_in_shop_id):
-        try:
-            product_in_shop = ProductInShop.objects.get(pk=product_in_shop_id)
-        except ProductInShop.DoesNotExist:
-            return Response({"error": "Product in shop not found"}, status=status.HTTP_404_NOT_FOUND)
+class ShopProductDetailView(generics.RetrieveAPIView):
+    serializer_class = ProductInShopSerializer
+    lookup_url_kwarg = 'product_id'  # Specify the expected URL keyword argument
+    lookup_field = 'id'  # Specify the model field to use for lookup
 
-        serializer = ProductInShopSerializer(product_in_shop)
-        return Response(serializer.data)
+    def get_queryset(self):
+        shop_id = self.kwargs['shop_id']
+        product_id = self.kwargs['product_id']
+        return ProductInShop.objects.filter(shop_id=shop_id, product_id=product_id)
 
-    def post(self, request):
-        serializer = ProductInShopSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request, product_in_shop_id):
-        try:
-            product_in_shop = ProductInShop.objects.get(pk=product_in_shop_id)
-        except ProductInShop.DoesNotExist:
-            return Response({"error": "Product in shop not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ProductInShopSerializer(product_in_shop, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, product_in_shop_id):
-        try:
-            product_in_shop = ProductInShop.objects.get(pk=product_in_shop_id)
-        except ProductInShop.DoesNotExist:
-            return Response({"error": "Product in shop not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        product_in_shop.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
+#category
 class ListProductsInCategoryView(generics.ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
         category_id = self.kwargs['category_id']
         return Product.objects.filter(category_id=category_id)
+
+
+#client
+
+class ClientListView(generics.ListCreateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+
+class ClientDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+
+class ShopClientsView(APIView):
+    def get(self, request, shop_id):
+        clients = Client.objects.filter(shop_id=shop_id)
+        serializer = ClientSerializer(clients, many=True)
+        return Response(serializer.data)
+
+
+class SupplierListView(generics.ListCreateAPIView):
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+
+class SupplierDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+
+
+class ShopSuppliersView(APIView):
+    def get(self, request, shop_id):
+        suppliers = Supplier.objects.filter(shop_id=shop_id)
+        serializer = SupplierSerializer(suppliers, many=True)
+        return Response(serializer.data)
+        
+class CoastsListView(generics.ListCreateAPIView):
+    queryset = Coasts.objects.all()
+    serializer_class = CoastsSerializer
+
+class CoastsDetailView(generics.RetrieveUpdateAPIView):
+    queryset = Coasts.objects.all()
+    serializer_class = CoastsSerializer
+
+
+
+class ShopCoastsView(APIView):
+    def get(self, request, shop_id):
+        coasts = Coasts.objects.filter(shop_id=shop_id)
+        serializer = CoastsSerializer(coasts, many=True)
+        return Response(serializer.data)

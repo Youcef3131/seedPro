@@ -6,6 +6,7 @@ class Shop(models.Model):
     is_master = models.BooleanField
 
 class Employee(models.Model):
+    
     work_days_in_month = 26
     name = models.CharField(max_length=50)
     family_name = models.CharField(max_length=50)
@@ -74,11 +75,17 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
 
+from django.db import models
+from .models import Shop, Product
+
 class ProductInShop(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
- 
+
+    class Meta:
+        unique_together = ['shop', 'product']
+
 class Coasts(models.Model):
     date = models.DateField(default=timezone.now)
     description = models.CharField(max_length=100)
