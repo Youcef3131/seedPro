@@ -3,7 +3,7 @@ from django.utils import timezone
 class Shop(models.Model):
     name = models.CharField(max_length=50)
     address = models.CharField(max_length=50)
-    is_master = models.BooleanField
+    is_master = models.BooleanField(default=False)
 
 class Employee(models.Model):
     
@@ -71,17 +71,14 @@ class Product(models.Model):
     reference = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
     buying_price = models.DecimalField(max_digits=15, decimal_places=2)     
-    selling_price = models.DecimalField(max_digits=15, decimal_places=2)
+    saleing_price = models.DecimalField(max_digits=15, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
-
-from django.db import models
-from .models import Shop, Product
 
 class ProductInShop(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.IntegerField(default=0)
 
     class Meta:
         unique_together = ['shop', 'product']
@@ -100,16 +97,24 @@ class Client(models.Model):
     email = models.EmailField()
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
 
-
-class Sell(models.Model):
+class Sale(models.Model):
     date = models.DateTimeField(default=timezone.now)
     client = models.ForeignKey(Client, on_delete=models.CASCADE)    
-    products = models.ManyToManyField(Product, through='SellProduct')
+    amountPaid = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
 
-class SellProduct(models.Model):
-    sell = models.ForeignKey(Sell, on_delete=models.CASCADE)
+class SaleProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity_sold = models.PositiveIntegerField(default=1)
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='sale_products')
+
+
+class SalePayment(models.Model):
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE)  
+    date = models.DateTimeField(default=timezone.now)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    
+    
+
 
 class Supplier(models.Model):
     name = models.CharField(max_length=50)
@@ -122,7 +127,9 @@ class Supplier(models.Model):
 class Purchase(models.Model):
     date = models.DateTimeField(default=timezone.now)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-    products = models.ManyToManyField(Product, through='PurchaseProduct')
+    amountPaidToSupplier = models.DecimalField(max_digits=15, decimal_places=2, default=0.0)
+
+  
 
 class PurchaseProduct(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
@@ -134,10 +141,6 @@ class PurchasePayment(models.Model):
     date = models.DateTimeField(default=timezone.now)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
 
-class SalePayment(models.Model):
-    sale = models.ForeignKey(Sell, on_delete=models.CASCADE)  
-    date = models.DateTimeField(default=timezone.now)
-    amount = models.DecimalField(max_digits=15, decimal_places=2)
 
 class Transfer(models.Model):
     source_shop = models.ForeignKey(Shop, related_name='transfers_made', on_delete=models.CASCADE)
@@ -145,12 +148,12 @@ class Transfer(models.Model):
     date = models.DateTimeField(default=timezone.now)
 
 class TransferItem(models.Model):
-    transfer = models.ForeignKey(Transfer, on_delete=models.CASCADE)
-    product_in_shop = models.ForeignKey(ProductInShop, on_delete=models.CASCADE)
+    transfer = models.ForeignKey(Transfer, on_delete=models.CASCADE, related_name='transfer_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
 class Composition(models.Model):
     shop = models.ForeignKey('Shop', on_delete=models.CASCADE)
     input_products = models.ManyToManyField('Product', related_name='compositions_used')
     output_product = models.ForeignKey('Product', related_name='compositions_created', on_delete=models.CASCADE)
-    quantity_used = models.PositiveIntegerField(default=1)
+    quantity_composed = models.PositiveIntegerField(default=1)

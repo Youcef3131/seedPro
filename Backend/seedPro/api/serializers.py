@@ -136,3 +136,77 @@ class CoastsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Coasts
         fields = '__all__'
+
+
+#sale
+
+
+class SaleProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SaleProduct
+        fields = '__all__'
+
+
+class SaleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sale
+        fields = ['id','date', 'client', 'amountPaid']
+       
+
+
+
+class SalePaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalePayment
+        fields = '__all__'
+
+from rest_framework import serializers
+
+class SaleTotalSerializer(serializers.Serializer):
+    total = serializers.DecimalField(max_digits=15, decimal_places=2)
+
+    
+################################################################
+
+
+#purshase
+
+class PurchaseProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PurchaseProduct
+        fields = '__all__'
+
+class PurchaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Purchase
+        fields = ['id', 'date', 'supplier', 'amountPaidToSupplier']
+
+class PurchaseProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PurchaseProduct
+        fields = '__all__'
+
+class PurchasePaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PurchasePayment
+        fields = '__all__'
+
+
+class TransferItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransferItem
+        fields = '__all__'
+
+class TransferSerializer(serializers.ModelSerializer):
+    items = TransferItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Transfer
+        fields = '__all__'
+
+
+
+class CompositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Composition
+        fields = '__all__'
