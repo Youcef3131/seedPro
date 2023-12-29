@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
+from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -17,10 +18,11 @@ from .models import *
 from rest_framework import generics
 from django.http import Http404
 from rest_framework.generics import *
-
+from django.db.models.functions import *
 
 #signUp+ add employee login logout
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def signup(request):
     user_serializer = UserSerializer(data=request.data)
     if user_serializer.is_valid():
@@ -54,6 +56,7 @@ def signup(request):
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def login(request):
     data = request.data
     user = authenticate(username=data['username'], password=data['password'])
@@ -197,6 +200,12 @@ class ShopProductsView(generics.ListAPIView):
         shop_id = self.kwargs['shop_id']
         return ProductInShop.objects.filter(shop_id=shop_id)
 
+class ProductInShopListView(generics.ListAPIView):
+    serializer_class = ProductWithQuantitySerializer
+
+    def get_queryset(self):
+        shop_id = self.kwargs.get('shop_id')
+        return ProductInShop.objects.filter(shop_id=shop_id)
 
 class ShopProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductInShopSerializer
@@ -248,7 +257,9 @@ class ShopSuppliersView(APIView):
         suppliers = Supplier.objects.filter(shop_id=shop_id)
         serializer = SupplierSerializer(suppliers, many=True)
         return Response(serializer.data)
-        
+#############################################################################################        
+
+
 class CoastsListView(generics.ListCreateAPIView):
     queryset = Coasts.objects.all()
     serializer_class = CoastsSerializer
@@ -264,6 +275,69 @@ class ShopCoastsView(APIView):
         coasts = Coasts.objects.filter(shop_id=shop_id)
         serializer = CoastsSerializer(coasts, many=True)
         return Response(serializer.data)
+
+class ClientsWithUnpaidSalesView(APIView):
+    def get(self, request, shop_id, format=None):
+        unpaid_clients = []
+
+        # Retrieve the shop details
+        try:
+            shop = Shop.objects.get(pk=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Retrieve all sales for the specified shop
+        sales = Sale.objects.filter(client__shop_id=shop_id)
+
+        # Iterate over each sale
+        for sale in sales:
+            # Calculate the total amount of products sold in this sale
+            total_sale_amount = sum(product.quantity_sold * product.product.saleing_price for product in sale.sale_products.all())
+
+            # Compare with the amountPaid for the associated sale
+            if sale.amountPaid < total_sale_amount:
+                unpaid_clients.append({
+                    'client_name': f'{sale.client.name} {sale.client.family_name}',
+                    'shop_details': shop_id,
+                    'sale_details': SaleSerializer(sale).data,
+                    'total_sale_amount': total_sale_amount,
+                    'amount_paid': float(sale.amountPaid),  # Convert to float for consistency
+                })
+
+        return Response(unpaid_clients, status=status.HTTP_200_OK)
+class SuppliersWithUnpaidPurchasesView(APIView):
+    def get(self, request, shop_id, format=None):
+        unpaid_suppliers = []
+
+        # Retrieve the shop details
+        try:
+            shop = Shop.objects.get(pk=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Retrieve all purchases for the specified shop
+        purchases = Purchase.objects.filter(supplier__shop_id=shop_id)
+
+        # Iterate over each purchase
+        for purchase in purchases:
+            # Calculate the total amount of products purchased in this purchase
+            total_purchase_amount = sum(
+                product.quantity_purchased * product.product.buying_price for product in purchase.purchaseproduct_set.all()
+            )
+
+            # Compare with the amountPaidToSupplier for the associated purchase
+            if purchase.amountPaidToSupplier < total_purchase_amount:
+                unpaid_suppliers.append({
+                    'supplier_name': f'{purchase.supplier.name} {purchase.supplier.family_name}',
+                    'shop_id': shop.id,
+                    'purchase_details': PurchaseSerializer(purchase).data,
+                    'total_purchase_amount': total_purchase_amount,
+                    'amount_paid_to_supplier': float(purchase.amountPaidToSupplier),  # Convert to float for consistency
+                })
+
+        return Response(unpaid_suppliers, status=status.HTTP_200_OK)
+
+
 
 
 
@@ -364,6 +438,42 @@ class SaleListByShopView(generics.ListAPIView):
         shop_id = self.kwargs.get('shop_id')
         return Sale.objects.filter(client__shop__id=shop_id)
 
+class AllSalesInfoView(APIView):
+    def get(self, request, shop_id):
+        # Retrieve sales data for the given shop_id
+        sales = Sale.objects.filter(client__shop_id=shop_id)
+
+        # Serialize the data using SaleInfoSerializer
+        serializer = SaleInfoSerializer(sales, many=True)
+
+        # Return the serialized data as a JSON response
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class SaleProductDetailView(APIView):
+
+    def get(self, request, sale_id):
+        # Retrieve sale products for the given sale_id
+        sale_products = SaleProduct.objects.filter(sale_id=sale_id)
+
+        # Serialize the data using SaleProductDetailSerializer
+        serializer = SaleProductDetailSerializer(sale_products, many=True)
+
+        # Return the serialized data as a JSON response
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AllPurchasesInfoView(APIView):
+    def get(self, request, shop_id):
+        # Retrieve purchase data for the given shop_id
+        purchases = Purchase.objects.filter(supplier__shop_id=shop_id)
+
+        # Serialize the data using PurchaseInfoSerializer
+        serializer = PurchaseInfoSerializer(purchases, many=True)
+
+        # Return the serialized data as a JSON response
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        
 class SaleListByClientView(generics.ListAPIView):
     serializer_class = SaleSerializer
 
@@ -496,6 +606,17 @@ class PurchaseProductListCreateView(generics.ListCreateAPIView):
         product_in_shop.quantity += purchase_product.quantity_purchased
         product_in_shop.save()
 
+class PurchaseProductDetailView(APIView):
+    def get(self, request, purchase_id):
+        # Retrieve purchase products for the given purchase_id
+        purchase_products = PurchaseProduct.objects.filter(purchase_id=purchase_id)
+
+        # Serialize the data using PurchaseProductDetailSerializer
+        serializer = PurchaseProductDetailSerializer(purchase_products, many=True)
+
+        # Return the serialized data as a JSON response
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
 class PurchaseProductRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = PurchaseProduct.objects.all()
     serializer_class = PurchaseProductSerializer
@@ -810,3 +931,571 @@ class CompositionRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView
             input_product_in_shop.save()
 
         instance.delete()
+
+
+
+#dashbord
+from django.db.models import *
+
+
+class TopClientsPerYearView(APIView):
+    def get(self, request, shop_id):
+        # Get the current year
+        current_year = timezone.now().year
+
+        # Validate and retrieve the shop
+        try:
+            shop = Shop.objects.get(pk=shop_id)
+        except Shop.DoesNotExist:
+            return JsonResponse({'error': 'Shop does not exist.'}, status=404)
+
+        # Calculate the total sales value for each client in the current year
+        top_clients = Client.objects.filter(shop=shop).annotate(
+            total_sales_value=Sum('sale__sale_products__quantity_sold', filter=Q(sale__date__year=current_year))
+        ).order_by('-total_sales_value')[:5]
+
+        # Serialize the data and return the response
+        serializer = ClientSerializer(top_clients, many=True)
+        return Response(serializer.data)
+
+
+
+class TopClientsPerMonthView(APIView):
+    def get(self, request, shop_id):
+        # Get the current month and year
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+
+        # Validate and retrieve the shop
+        try:
+            shop = Shop.objects.get(pk=shop_id)
+        except Shop.DoesNotExist:
+            return JsonResponse({'error': 'Shop does not exist.'}, status=404)
+
+        # Calculate the total sales value for each client in the current month
+        top_clients = Client.objects.filter(shop=shop).annotate(
+            total_sales_value=Sum('sale__sale_products__quantity_sold', 
+                                  filter=Q(sale__date__month=current_month, sale__date__year=current_year))
+        ).order_by('-total_sales_value')[:5]
+
+        # Serialize the data and return the response
+        serializer = ClientSerializer(top_clients, many=True)
+        return Response(serializer.data)
+
+
+class TopSuppliersPerMonthView(APIView):
+    def get(self, request, shop_id):
+        # Get the current month and year
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+
+        # Validate and retrieve the shop
+        try:
+            shop = Shop.objects.get(pk=shop_id)
+        except Shop.DoesNotExist:
+            return JsonResponse({'error': 'Shop does not exist.'}, status=404)
+
+        # Calculate the total purchase value for each supplier in the current month
+        top_suppliers = Supplier.objects.filter(shop=shop).annotate(
+            total_purchase_value=Sum('purchase__purchaseproduct__quantity_purchased', 
+                                     filter=Q(purchase__date__month=current_month, purchase__date__year=current_year))
+        ).order_by('-total_purchase_value')[:5]
+
+        # Serialize the data and return the response
+        serializer = SupplierSerializer(top_suppliers, many=True)
+        return Response(serializer.data)
+
+    
+
+class TopSuppliersPerYearView(APIView):
+    def get(self, request, shop_id):
+        # Get the current year
+        current_year = timezone.now().year
+
+        # Validate and retrieve the shop
+        try:
+            shop = Shop.objects.get(pk=shop_id)
+        except Shop.DoesNotExist:
+            return JsonResponse({'error': 'Shop does not exist.'}, status=404)
+
+        # Calculate the total purchase value for each supplier in the current year
+        top_suppliers = Supplier.objects.filter(shop=shop).annotate(
+            total_purchase_value=Sum('purchase__purchaseproduct__quantity_purchased', 
+                                     filter=Q(purchase__date__year=current_year))
+        ).order_by('-total_purchase_value')[:5]
+
+        # Serialize the data and return the response
+        serializer = SupplierSerializer(top_suppliers, many=True)
+        return Response(serializer.data)
+
+
+
+
+
+
+class BestSellingProductsView(APIView):
+    def get(self, request, shop_id):
+        try:
+            shop = Shop.objects.get(pk=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found.'}, status=404)
+
+        # Get the quantity of each product sold in the specified shop
+        product_quantities = SaleProduct.objects.filter(sale__client__shop=shop) \
+            .values('product') \
+            .annotate(total_sold=Sum('quantity_sold')) \
+            .order_by('-total_sold')[:5]  # Limit to the top 5 best-selling products
+
+        # Fetch the corresponding Product instances and serialize the data
+        best_selling_products_data = []
+        for product_quantity in product_quantities:
+            product_id = product_quantity['product']
+            quantity_sold = product_quantity['total_sold']
+            product = Product.objects.get(pk=product_id)
+
+            # Serialize product data
+            serializer = ProductSerializer(product)
+            product_data = serializer.data
+
+            # Include quantity sold in the response
+            product_data['quantity_sold'] = quantity_sold
+            best_selling_products_data.append(product_data)
+
+        return Response(best_selling_products_data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+class PurchaseEvolutionMonthView(APIView):
+    def get(self, request, shop_id):
+        try:
+            # Assuming you have a Shop model and 'id' is the primary key
+            shop = Shop.objects.get(id=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found.'}, status=404)
+
+        # Calculate total purchases for the current month
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+
+        total_purchase_current_month = Purchase.objects.filter(
+            date__month=current_month,
+            date__year=current_year,
+            supplier__shop=shop
+        ).aggregate(
+            total_purchase_current_month=Coalesce(
+                Sum(F('purchaseproduct__quantity_purchased') * F('purchaseproduct__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_purchase_current_month']
+
+        # Calculate total purchases for the previous month
+        previous_month = (current_month - 1) if current_month > 1 else 12
+        previous_year = current_year if current_month > 1 else (current_year - 1)
+
+        total_purchase_previous_month = Purchase.objects.filter(
+            date__month=previous_month,
+            date__year=previous_year,
+            supplier__shop=shop
+        ).aggregate(
+            total_purchase_previous_month=Coalesce(
+                Sum(F('purchaseproduct__quantity_purchased') * F('purchaseproduct__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_purchase_previous_month']
+
+        # Calculate the evolution rate
+        evolution_rate_month_purchase = (
+            (total_purchase_current_month - total_purchase_previous_month) / total_purchase_previous_month
+        ) * 100 if total_purchase_previous_month != 0 else 0
+
+        response_data = {
+            'total_purchase_current_month': total_purchase_current_month,
+            'total_purchase_previous_month': total_purchase_previous_month,
+            'evolution_rate_month_purchase': evolution_rate_month_purchase,
+        }
+
+        return Response(response_data)
+
+
+
+class PurchaseEvolutionYearView(APIView):
+    def get(self, request, shop_id):
+        try:
+            shop = Shop.objects.get(id=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found.'}, status=404)
+
+        # Calculate total purchases for the current year
+        current_year = timezone.now().year
+
+        total_purchase_current_year = Purchase.objects.filter(
+            date__year=current_year,
+            supplier__shop=shop
+        ).aggregate(
+            total_purchase_current_year=Coalesce(
+                Sum(F('purchaseproduct__quantity_purchased') * F('purchaseproduct__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_purchase_current_year']
+
+        # Calculate total purchases for the previous year
+        previous_year = current_year - 1
+
+        total_purchase_previous_year = Purchase.objects.filter(
+            date__year=previous_year,
+            supplier__shop=shop
+        ).aggregate(
+            total_purchase_previous_year=Coalesce(
+                Sum(F('purchaseproduct__quantity_purchased') * F('purchaseproduct__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_purchase_previous_year']
+
+        # Calculate the evolution rate
+        evolution_rate_year_purchase = (
+            (total_purchase_current_year - total_purchase_previous_year) / total_purchase_previous_year
+        ) * 100 if total_purchase_previous_year != 0 else 0
+
+        response_data = {
+            'total_purchase_current_year': total_purchase_current_year,
+            'total_purchase_previous_year': total_purchase_previous_year,
+            'evolution_rate_year_purchase': evolution_rate_year_purchase,
+        }
+
+        return Response(response_data)
+
+
+
+
+class SalesEvolutionMonthView(APIView):
+    def get(self, request, shop_id):
+        try:
+            shop = Shop.objects.get(id=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found.'}, status=404)
+
+        # Calculate total sales for the current month
+        current_month = timezone.now().month
+        current_year = timezone.now().year
+
+        total_sales_current_month = Sale.objects.filter(
+            date__month=current_month,
+            date__year=current_year,
+            client__shop=shop
+        ).aggregate(
+            total_sales_current_month=Coalesce(
+                Sum(F('sale_products__quantity_sold') * F('sale_products__product__saleing_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_sales_current_month']
+
+        # Calculate total sales for the previous month
+        previous_month = (current_month - 1) if current_month > 1 else 12
+        previous_year = current_year if current_month > 1 else (current_year - 1)
+
+        total_sales_previous_month = Sale.objects.filter(
+            date__month=previous_month,
+            date__year=previous_year,
+            client__shop=shop
+        ).aggregate(
+            total_sales_previous_month=Coalesce(
+                Sum(F('sale_products__quantity_sold') * F('sale_products__product__saleing_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_sales_previous_month']
+
+        # Calculate the evolution rate
+        evolution_rate_month_sales = (
+            (total_sales_current_month - total_sales_previous_month) / total_sales_previous_month
+        ) * 100 if total_sales_previous_month != 0 else 0
+
+        response_data = {
+            'total_sales_current_month': total_sales_current_month,
+            'total_sales_previous_month': total_sales_previous_month,
+            'evolution_rate_month_sales': evolution_rate_month_sales,
+        }
+
+        return Response(response_data)
+    
+
+
+class SalesEvolutionYearView(APIView):
+    def get(self, request, shop_id):
+        try:
+            shop = Shop.objects.get(id=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found.'}, status=404)
+
+        # Calculate total sales for the current year
+        current_year = timezone.now().year
+
+        total_sales_current_year = Sale.objects.filter(
+            date__year=current_year,
+            client__shop=shop
+        ).aggregate(
+            total_sales_current_year=Coalesce(
+                Sum(F('sale_products__quantity_sold') * F('sale_products__product__saleing_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_sales_current_year']
+
+        # Calculate total sales for the previous year
+        previous_year = current_year - 1
+
+        total_sales_previous_year = Sale.objects.filter(
+            date__year=previous_year,
+            client__shop=shop
+        ).aggregate(
+            total_sales_previous_year=Coalesce(
+                Sum(F('sale_products__quantity_sold') * F('sale_products__product__saleing_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_sales_previous_year']
+
+        # Calculate the evolution rate
+        evolution_rate_year_sales = (
+            (total_sales_current_year - total_sales_previous_year) / total_sales_previous_year
+        ) * 100 if total_sales_previous_year != 0 else 0
+
+        response_data = {
+            'total_sales_current_year': total_sales_current_year,
+            'total_sales_previous_year': total_sales_previous_year,
+            'evolution_rate_year_sales': evolution_rate_year_sales,
+        }
+
+        return Response(response_data)
+
+
+
+
+
+
+
+
+
+
+from datetime import *
+
+
+class ShopSalesLast5DaysAPIView(APIView):
+    def get(self, request, shop_id):
+        # Calculate the date 5 days ago from today
+        start_date = datetime.now() - timedelta(days=5)
+
+        # Query the sales for the specified shop in the last 5 days
+        sales_last_5_days = Sale.objects.filter(
+            date__gte=start_date,
+            client__shop_id=shop_id
+        )
+
+        # Calculate sales per day
+        sales_per_day = sales_last_5_days.values('date__date').annotate(count=Count('id')).order_by('-date__date')
+
+        # Get an array of sales count per day starting with the latest day
+        sales_count_per_day = [entry['count'] for entry in sales_per_day]
+
+        return Response(sales_count_per_day)
+
+from django.utils import timezone
+class ProfitEvolutionYearView(APIView):
+    def get(self, request, shop_id):
+        try:
+            shop = Shop.objects.get(id=shop_id)
+        except Shop.DoesNotExist:
+            return Response({'error': 'Shop not found.'}, status=404)
+
+        current_year = timezone.now().year
+
+        total_sales_current_year = Sale.objects.filter(
+            date__year=current_year,
+            client__shop=shop
+        ).aggregate(
+            total_sales_current_year=Coalesce(
+                Sum(F('sale_products__quantity_sold') * F('sale_products__product__saleing_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_sales_current_year']
+
+        total_transfers_current_year = Transfer.objects.filter(
+            date__year=current_year,
+            source_shop=shop
+        ).aggregate(
+            total_transfers_current_year=Coalesce(
+                Sum(F('transfer_items__quantity') * F('transfer_items__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_transfers_current_year']
+
+        total_costs_current_year = Coasts.objects.filter(
+            date__year=current_year,
+            shop=shop
+        ).aggregate(
+            total_costs_current_year=Sum('amount')
+        )['total_costs_current_year'] or 0
+
+        total_employee_payments_current_year = shop.employee_set.filter(
+            paymenttransaction__transaction_date__year=current_year
+        ).aggregate(
+            total_employee_payments_current_year=Coalesce(
+                Sum('paymenttransaction__amount'),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_employee_payments_current_year']
+
+        total_purchases_current_year = Purchase.objects.filter(
+            date__year=current_year,
+            supplier__shop=shop
+        ).aggregate(
+            total_purchases_current_year=Coalesce(
+                Sum(F('purchaseproduct__quantity_purchased') * F('purchaseproduct__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_purchases_current_year']
+
+        if shop.is_master:
+            profit_current_year = (
+                total_sales_current_year +
+                total_transfers_current_year -
+                total_purchases_current_year -
+                total_costs_current_year -
+                total_employee_payments_current_year
+            )
+        else:
+            profit_current_year = (
+                total_sales_current_year -
+                total_transfers_current_year -
+                total_costs_current_year -
+                total_employee_payments_current_year
+            )
+
+        total_sales_previous_year = Sale.objects.filter(
+            date__year=current_year - 1,
+            client__shop=shop
+        ).aggregate(
+            total_sales_previous_year=Coalesce(
+                Sum(F('sale_products__quantity_sold') * F('sale_products__product__saleing_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_sales_previous_year']
+
+        total_transfers_previous_year = Transfer.objects.filter(
+            date__year=current_year - 1,
+            source_shop=shop
+        ).aggregate(
+            total_transfers_previous_year=Coalesce(
+                Sum(F('transfer_items__quantity') * F('transfer_items__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_transfers_previous_year']
+
+        total_costs_previous_year = Coasts.objects.filter(
+            date__year=current_year - 1,
+            shop=shop
+        ).aggregate(
+            total_costs_previous_year=Sum('amount')
+        )['total_costs_previous_year'] or 0
+
+        total_employee_payments_previous_year = shop.employee_set.filter(
+            paymenttransaction__transaction_date__year=current_year - 1
+        ).aggregate(
+            total_employee_payments_previous_year=Coalesce(
+                Sum('paymenttransaction__amount'),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_employee_payments_previous_year']
+
+        total_purchases_previous_year = Purchase.objects.filter(
+            date__year=current_year - 1,
+            supplier__shop=shop
+        ).aggregate(
+            total_purchases_previous_year=Coalesce(
+                Sum(F('purchaseproduct__quantity_purchased') * F('purchaseproduct__product__buying_price')),
+                0,
+                output_field=DecimalField()
+            )
+        )['total_purchases_previous_year']
+
+        if shop.is_master:
+            profit_previous_year = (
+                total_sales_previous_year +
+                total_transfers_previous_year -
+                total_purchases_previous_year -
+                total_costs_previous_year -
+                total_employee_payments_previous_year
+            )
+        else:
+            profit_previous_year = (
+                total_sales_previous_year -
+                total_transfers_previous_year -
+                total_costs_previous_year -
+                total_employee_payments_previous_year
+            )
+
+        evolution_rate_year_profit = (
+            (profit_current_year - profit_previous_year) / profit_previous_year
+        ) * 100 if profit_previous_year != 0 else 0
+
+        response_data = {
+            'profit_current_year': profit_current_year,
+            'profit_previous_year': profit_previous_year,
+            'evolution_rate_year_profit': evolution_rate_year_profit,
+        }
+
+        return Response(response_data)
+
+
+
+
+

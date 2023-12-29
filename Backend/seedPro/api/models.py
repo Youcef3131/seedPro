@@ -106,7 +106,9 @@ class SaleProduct(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity_sold = models.PositiveIntegerField(default=1)
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='sale_products')
-
+    @property
+    def subtotal(self):
+        return self.quantity_sold * self.product.saleing_price
 
 class SalePayment(models.Model):
     sale = models.ForeignKey(Sale, on_delete=models.CASCADE)  
@@ -135,6 +137,9 @@ class PurchaseProduct(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity_purchased = models.PositiveIntegerField(default=1)
+    @property
+    def subtotal(self):
+        return self.quantity_purchased * self.product.buying_price
 
 class PurchasePayment(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)

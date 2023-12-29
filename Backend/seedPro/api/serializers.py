@@ -140,6 +140,7 @@ class CoastsSerializer(serializers.ModelSerializer):
 
 #sale
 
+from django.db.models  import *
 
 class SaleProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -152,9 +153,43 @@ class SaleSerializer(serializers.ModelSerializer):
         model = Sale
         fields = ['id','date', 'client', 'amountPaid']
        
+from decimal import Decimal
 
+class SaleInfoSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source='client.family_name', read_only=True)
+    client_first_name = serializers.CharField(source='client.name', read_only=True)
+    total = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    amount_not_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
+    class Meta:
+        model = Sale
+        fields = ['id', 'date', 'client', 'client_name', 'client_first_name', 'amountPaid', 'total', 'amount_not_paid']
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Calculate total and amount_not_paid
+        total = SaleProduct.objects.filter(sale=instance).aggregate(
+            total_amount=Sum(F('quantity_sold') * F('product__saleing_price')))['total_amount']
+
+        data['total'] = total or Decimal('0.00')  # Convert float to Decimal here
+        data['amount_not_paid'] = data['total'] - Decimal(data['amountPaid'])  # Convert float to Decimal here
+        return data
+
+class SaleProductDetailSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.description', read_only=True)
+    product_price = serializers.DecimalField(
+        source='product.saleing_price',
+        max_digits=15,  
+        decimal_places=2,  
+        read_only=True
+    )
+
+    class Meta:
+        model = SaleProduct
+        fields = ['product', 'product_name', 'quantity_sold', 'product_price', 'subtotal']
+
+        
 class SalePaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalePayment
@@ -191,7 +226,40 @@ class PurchasePaymentSerializer(serializers.ModelSerializer):
         model = PurchasePayment
         fields = '__all__'
 
+class PurchaseInfoSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField(source='supplier.family_name', read_only=True)
+    supplier_first_name = serializers.CharField(source='supplier.name', read_only=True)
+    total = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    amount_not_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
 
+    class Meta:
+        model = Purchase
+        fields = ['id', 'date', 'supplier', 'supplier_name', 'supplier_first_name', 'amountPaidToSupplier', 'total', 'amount_not_paid']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Calculate total and amount_not_paid
+        total = PurchaseProduct.objects.filter(purchase=instance).aggregate(
+            total_amount=Sum(F('quantity_purchased') * F('product__buying_price')))['total_amount']
+
+        data['total'] = total or Decimal('0.00')  # Convert float to Decimal here
+        data['amount_not_paid'] = data['total'] - Decimal(data['amountPaidToSupplier'])  # Convert float to Decimal here
+        return data
+
+class PurchaseProductDetailSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.description', read_only=True)
+    product_price = serializers.DecimalField(
+        source='product.buying_price',
+        max_digits=15,
+        decimal_places=2,
+        read_only=True
+    )
+
+    class Meta:
+        model = PurchaseProduct
+        fields = ['product', 'product_name', 'quantity_purchased', 'product_price', 'subtotal']
+        
 class TransferItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransferItem
@@ -210,3 +278,27 @@ class CompositionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Composition
         fields = '__all__'
+
+
+class IncompletePaymentsClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = ['id', 'name', 'family_name', 'phone', 'address', 'email']
+
+
+
+
+
+class ProductWithQuantitySerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
+
+    class Meta:
+        model = ProductInShop
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        product_data = representation.pop('product')
+        for key, value in product_data.items():
+            representation[key] = value
+        return representation
