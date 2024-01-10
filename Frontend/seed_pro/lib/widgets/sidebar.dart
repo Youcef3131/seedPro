@@ -16,7 +16,6 @@ class Sidebar extends StatelessWidget {
             '   OVERVIEW',
             style: TextStyle(color: AppColors.grey, fontSize: 12.0),
           ),
-          SizedBox(height: 10),
           SidebarItem(
             routeName: '/dashboard',
             icon: Icons.dashboard,
