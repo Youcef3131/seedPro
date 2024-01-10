@@ -46,7 +46,7 @@ class AuthenticationService {
   Future<void> saveTokenLocally(String token) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
-    debugPrint('Token saved securely: $token');
+    debugPrint('Token saved securelyy: $token');
   }
 
   Future<void> saveShopInfoLocally(String shopId, String username) async {
