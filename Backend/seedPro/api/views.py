@@ -93,6 +93,7 @@ def logout(request):
         return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)@api_view(["GET"])
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def get_shop_by_username(request, username):
     try:
         # First, try to find the user by username
@@ -147,6 +148,8 @@ class PaymentTransactionDeleteView(DestroyAPIView):
 class AddPresenceView(generics.CreateAPIView):
     queryset = Presence.objects.all()
     serializer_class = PresenceSerializer
+
+    
 class EmployeePresenceInMonthView(generics.ListAPIView):
     serializer_class = PresenceSerializer
 

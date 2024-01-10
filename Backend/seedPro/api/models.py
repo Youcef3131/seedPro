@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+
+
 class Shop(models.Model):
     name = models.CharField(max_length=50)
     address = models.CharField(max_length=50)
@@ -162,3 +164,6 @@ class Composition(models.Model):
     input_products = models.ManyToManyField('Product', related_name='compositions_used')
     output_product = models.ForeignKey('Product', related_name='compositions_created', on_delete=models.CASCADE)
     quantity_composed = models.PositiveIntegerField(default=1)
+
+
+    
