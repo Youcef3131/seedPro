@@ -7,9 +7,12 @@ urlpatterns = [
     path('signup/', views.signup),#works
     path('logout/', views.logout),#works
     path('get-shop/<str:username>/', views.get_shop_by_username, name='get_shop_by_username'),#works
+    path('get-employee/<str:username>/', views.RetrieveEmployeeView.as_view(), name='get_employee'),
     # Shop-related endpoints
     path('add_shop/', views.AddShopView.as_view(), name='add_shop'),#works post
     path('shops/', views.ListShopsView.as_view(), name='list_shops'), #display shops #works get
+    path('shops/<int:pk>/', views.RetrieveShopView.as_view(), name='retrieve_shop'),
+
 
     # Employee-related endpoints
     path('employees/<int:pk>/', views.RetrieveUpdateEmployeeView.as_view(), name='retrieve_update_employee'), ## get put employee works

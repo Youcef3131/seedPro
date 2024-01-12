@@ -116,6 +116,19 @@ def get_shop_by_username(request, username):
         except Employee.DoesNotExist:
             return Response({"detail": "User does not have an associated employee or shop"}, status=status.HTTP_404_NOT_FOUND)
 
+
+class RetrieveEmployeeView(generics.RetrieveAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+
+    def get_object(self):
+        username = self.kwargs['username']
+        try:
+            return Employee.objects.get(username=username)
+        except Employee.DoesNotExist:
+            raise Http404
+
+            
 class ListEmployeesView(generics.ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
@@ -182,6 +195,9 @@ class ListShopsView(generics.ListAPIView):
     queryset = Shop.objects.all()
     serializer_class = ShopSerializer
 
+class RetrieveShopView(generics.RetrieveAPIView):
+    queryset = Shop.objects.all()
+    serializer_class = ShopSerializer
 #product 
 class ProductListView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
