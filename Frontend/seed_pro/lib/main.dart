@@ -11,13 +11,15 @@ import 'package:seed_pro/screens/purchases.dart';
 import 'package:seed_pro/screens/sales.dart';
 import 'package:seed_pro/screens/suppliers.dart';
 import 'package:seed_pro/screens/transfers.dart';
+import 'package:seed_pro/services/authentication_service.dart';
 import 'screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-const String baseurl = 'http://127.0.0.1:8000/';
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

@@ -1,75 +1,71 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:seed_pro/models/product_model.dart';
+import 'package:seed_pro/services/authentication_service.dart';
 
-class ApiUtility {
-  static final String baseUrl = 'http://127.0.0.1:8000/api';
 
-  static Future<List<Map<String, dynamic>>> fetchProducts() async {
+class ProductApi {
+  final String baseUrl;
+
+  ProductApi(this.baseUrl);
+
+  Future<List<Product>> getProducts() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/products/'),
-      headers: await _getHeaders(),
+      Uri.parse('$baseUrl/api/products/'),
+      headers: await getHeaders(),
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> productList = json.decode(response.body);
-      return productList.cast<Map<String, dynamic>>();
+      Iterable list = json.decode(response.body);
+      return List<Product>.from(
+        list.map((product) => Product.fromJson(product)),
+      );
     } else {
       throw Exception('Failed to load products');
     }
   }
 
-  static Future<void> createProduct(Map<String, dynamic> productData) async {
+  Future<Product> createProduct(Product newProduct) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/products/'),
-      headers: await _getHeaders(),
-      body: json.encode(productData),
+      Uri.parse('$baseUrl/api/products/'),
+      headers: await getHeaders(),
+      body: jsonEncode(newProduct.toJson()),
     );
 
-    if (response.statusCode != 201) {
+    if (response.statusCode == 201) {
+      return Product.fromJson(json.decode(response.body));
+    } else {
       throw Exception('Failed to create product');
     }
   }
 
-  static Future<Map<String, dynamic>> fetchProduct(int productId) async {
+  Future<Product> getProductById(int productId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/products/$productId/'),
-      headers: await _getHeaders(),
+      Uri.parse('$baseUrl/api/products/$productId/'),
+      headers: await getHeaders(),
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      return Product.fromJson(json.decode(response.body));
     } else {
-      throw Exception('Failed to fetch product');
+      throw Exception('Failed to load product details');
     }
   }
 
-  static Future<void> updateProduct(int productId, Map<String, dynamic> productData) async {
+  Future<Product> updateProduct(Product updatedProduct) async {
     final response = await http.put(
-      Uri.parse('$baseUrl/products/$productId/'),
-      headers: await _getHeaders(),
-      body: json.encode(productData),
+      Uri.parse('$baseUrl/api/products/${updatedProduct.id}/'),
+      headers: await getHeaders(),
+      body: jsonEncode(updatedProduct.toJson()),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode == 200) {
+      return Product.fromJson(json.decode(response.body));
+    } else {
       throw Exception('Failed to update product');
     }
   }
-
-  static Future<void> deleteProduct(int productId) async {
-    final response = await http.delete(
-      Uri.parse('$baseUrl/products/$productId/'),
-      headers: await _getHeaders(),
-    );
-
-    if (response.statusCode != 204) {
-      throw Exception('Failed to delete product');
-    }
-  }
-
-  static Future<Map<String, String>> _getHeaders() async {
-    final prefs = await SharedPreferences.getInstance();
-    final authToken = prefs.getString('authToken') ?? '';
-    return {'Authorization': 'Token $authToken'};
-  }
 }
+
+
+

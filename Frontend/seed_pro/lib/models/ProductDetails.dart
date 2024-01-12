@@ -1,13 +1,17 @@
-class Product {
+class ProductDetails {
   final int id;
+  final int quantity;
+  final int shop;
   final String reference;
   final String description;
   final double buyingPrice;
   final double sellingPrice;
   final int category;
 
-  Product({
+  ProductDetails({
     required this.id,
+    required this.quantity,
+    required this.shop,
     required this.reference,
     required this.description,
     required this.buyingPrice,
@@ -15,25 +19,16 @@ class Product {
     required this.category,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
+  factory ProductDetails.fromJson(Map<String, dynamic> json) {
+    return ProductDetails(
       id: json['id'],
+      quantity: json['quantity'],
+      shop: json['shop'],
       reference: json['reference'],
       description: json['description'],
       buyingPrice: double.parse(json['buying_price']),
-      sellingPrice: double.parse(json['selling_price']),
+      sellingPrice: double.parse(json['saleing_price']),
       category: json['category'],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'reference': reference,
-      'description': description,
-      'buying_price': buyingPrice.toString(),
-      'selling_price': sellingPrice.toString(),
-      'category': category,
-    };
   }
 }

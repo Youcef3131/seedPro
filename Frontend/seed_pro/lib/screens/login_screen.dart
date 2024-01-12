@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:seed_pro/main.dart';
+import 'package:seed_pro/globales.dart';
+
 import 'package:seed_pro/widgets/colors.dart';
 import '../models/user.dart';
 import '../services/authentication_service.dart';
@@ -149,9 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
           final Map<String, dynamic> data = json.decode(response.body);
 
           if (data.containsKey('id')) {
-            final String shopId =
-                data['id'].toString();
-
+            final String shopId = data['id'].toString();
             await authService.saveShopInfoLocally(shopId, username);
             Navigator.pushNamed(context, '/dashboard');
           } else {

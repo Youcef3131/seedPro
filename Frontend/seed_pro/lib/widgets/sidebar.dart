@@ -1,7 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:seed_pro/globales.dart';
+import 'package:seed_pro/models/shop_model.dart';
+import 'package:seed_pro/services/shop_service.dart';
 import 'package:seed_pro/widgets/colors.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends StatefulWidget {
+  @override
+  State<Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  final ShopApi shopApi = ShopApi(baseurl);
+  bool master = false;
+  late Shop shop = new Shop(
+    address: '',
+    name: '',
+    id: 0,
+    isMaster: false,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    fetchShopDetails();
+  }
+
+  Future<void> fetchShopDetails() async {
+    Shop fetchedShop = await shopApi.getShopDetails();
+
+    print(fetchedShop.name);
+
+    setState(() {
+      shop = fetchedShop;
+      master = shop.isMaster;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -10,12 +44,16 @@ class Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(
+            height: 15,
+          ),
           Image.asset('images/logo.png'),
           SizedBox(height: 20),
           Text(
             '   OVERVIEW',
             style: TextStyle(color: AppColors.grey, fontSize: 12.0),
           ),
+          SizedBox(height: 10),
           SidebarItem(
             routeName: '/dashboard',
             icon: Icons.dashboard,
@@ -46,21 +84,25 @@ class Sidebar extends StatelessWidget {
             icon: Icons.local_shipping,
             text: 'Suppliers',
           ),
-          SidebarItem(
-            routeName: '/purchases',
-            icon: Icons.add_shopping_cart,
-            text: 'Purchases',
-          ),
+          master == true
+              ? SidebarItem(
+                  routeName: '/purchases',
+                  icon: Icons.add_shopping_cart,
+                  text: 'Purchases',
+                )
+              : Container(),
           SidebarItem(
             routeName: '/transfers',
             icon: Icons.compare_arrows,
             text: 'Transfers',
           ),
-          SidebarItem(
-            routeName: '/compositions',
-            icon: Icons.recycling_sharp,
-            text: 'Compositions',
-          ),
+          master == false
+              ? SidebarItem(
+                  routeName: '/compositions',
+                  icon: Icons.recycling_sharp,
+                  text: 'Compositions',
+                )
+              : Container(),
           SidebarItem(
             routeName: '/coasts',
             icon: Icons.money,
@@ -71,11 +113,13 @@ class Sidebar extends StatelessWidget {
             icon: Icons.people,
             text: 'Employees',
           ),
-          SidebarItem(
-            routeName: '/addshops',
-            icon: Icons.add_location,
-            text: 'Add Shops',
-          ),
+          master == true
+              ? SidebarItem(
+                  routeName: '/addshops',
+                  icon: Icons.add_location,
+                  text: 'Add Shops',
+                )
+              : Container(),
           SizedBox(height: 40),
           Text(
             '   OTHER',

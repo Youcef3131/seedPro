@@ -2,7 +2,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:seed_pro/main.dart';
+import 'package:seed_pro/globales.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 
@@ -67,10 +68,31 @@ Future<String?> getTokenFromPrefs() async {
 }
 
 
+Future<String?> getUsernameFromPrefs() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('username');
+}
+
 Future<String?> getShopIdFromPrefs() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString('shop_id');
 }
+
+
+
+
+
+Future<Map<String, String>> getHeaders() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? authToken = prefs.getString('auth_token');
+
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Token $authToken',
+    };
+  }
+
+
 
 
 Future<void> removeAllInfoFromPrefs() async {
