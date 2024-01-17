@@ -20,8 +20,12 @@ class Product {
       id: json['id'],
       reference: json['reference'],
       description: json['description'],
-      buyingPrice: double.parse(json['buying_price']),
-      sellingPrice: double.parse(json['selling_price']),
+      buyingPrice: json['buyingPrice'] != null
+          ? double.tryParse(json['buyingPrice'].toString()) ?? 0.0
+          : 0.0,
+      sellingPrice: json['sellingPrice'] != null
+          ? double.tryParse(json['sellingPrice'].toString()) ?? 0.0
+          : 0.0,
       category: json['category'],
     );
   }
@@ -31,8 +35,8 @@ class Product {
       'id': id,
       'reference': reference,
       'description': description,
-      'buying_price': buyingPrice.toString(),
-      'selling_price': sellingPrice.toString(),
+      'buying_price': buyingPrice,
+      'saleing_price': sellingPrice, // Corrected field name
       'category': category,
     };
   }

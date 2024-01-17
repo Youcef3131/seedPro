@@ -8,20 +8,6 @@ class ClientApi {
 
   ClientApi(this.baseUrl);
 
-  Future<List<Client>> getClients() async {
-    final response = await http.get(Uri.parse('$baseUrl/api/clients/'),
-        headers: await getHeaders());
-
-    if (response.statusCode == 200) {
-      Iterable list = json.decode(response.body);
-      return List<Client>.from(
-        list.map((client) => Client.fromJson(client)),
-      );
-    } else {
-      throw Exception('Failed to load clients');
-    }
-  }
-
   Future<Client> getClientById(int clientId) async {
     final response = await http.get(
         Uri.parse('$baseUrl/api/clients/$clientId/'),
@@ -34,7 +20,8 @@ class ClientApi {
     }
   }
 
-  Future<List<Client>> getClientsInShop(int shopId) async {
+  Future<List<Client>> getClientsInShop() async {
+    var shopId = await getShopIdFromPrefs();
     final response = await http.get(Uri.parse('$baseUrl/api/$shopId/clients/'),
         headers: await getHeaders());
 
