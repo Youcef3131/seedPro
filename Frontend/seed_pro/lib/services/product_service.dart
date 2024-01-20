@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:seed_pro/models/product_model.dart';
 import 'package:seed_pro/services/authentication_service.dart';
 
-
 class ProductApi {
   final String baseUrl;
 
@@ -66,6 +65,3 @@ class ProductApi {
     }
   }
 }
-
-
-

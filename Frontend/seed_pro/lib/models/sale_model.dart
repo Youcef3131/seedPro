@@ -1,22 +1,24 @@
 class Sale {
   final int id;
   final DateTime date;
-  final int client;
-  final String amountPaid;
+  final int clientId;
+  final double amountPaid;
 
   Sale({
     required this.id,
     required this.date,
-    required this.client,
+    required this.clientId,
     required this.amountPaid,
   });
 
   factory Sale.fromJson(Map<String, dynamic> json) {
     return Sale(
-      id: json['id'] as int,
-      date: DateTime.parse(json['date'] as String),
-      client: json['client'] as int,
-      amountPaid: json['amountPaid'] as String,
+      id: json['id'],
+      date: DateTime.parse(json['date']),
+      clientId: json['client'],
+      amountPaid: json['amountPaid'] != null
+          ? double.tryParse(json['amountPaid'].toString()) ?? 0.0
+          : 0.0,
     );
   }
 
@@ -24,9 +26,8 @@ class Sale {
     return {
       'id': id,
       'date': date.toIso8601String(),
-      'client': client,
-      'amountPaid': amountPaid,
+      'client': clientId,
+      'amountPaid': amountPaid.toString(),
     };
   }
 }
-

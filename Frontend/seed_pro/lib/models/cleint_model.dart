@@ -19,13 +19,13 @@ class Client {
 
   factory Client.fromJson(Map<String, dynamic> json) {
     return Client(
-      id: json['id'],
-      name: json['name'],
-      familyName: json['family_name'],
-      phone: json['phone'],
-      address: json['address'],
-      email: json['email'],
-      shop: json['shop'],
+      id: json['id'] as int,
+      name: json['name'] as String,
+      familyName: json['family_name'] as String,
+      phone: json['phone'] as String,
+      address: json['address'] as String,
+      email: json['email'] as String,
+      shop: json['shop'] as int,
     );
   }
 

@@ -16,15 +16,13 @@ class Categories extends StatefulWidget {
 
 class _CategoriesState extends State<Categories> {
   late List<Category> categories = [];
-  late TextEditingController categoryNameController;
-  late TextEditingController categoryDescriptionController;
+  TextEditingController categoryNameController = TextEditingController();
+  TextEditingController categoryDescriptionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     loadCategories();
-    categoryNameController = TextEditingController();
-    categoryDescriptionController = TextEditingController();
   }
 
   Future<void> loadCategories() async {

@@ -20,11 +20,11 @@ class Product {
       id: json['id'],
       reference: json['reference'],
       description: json['description'],
-      buyingPrice: json['buyingPrice'] != null
-          ? double.tryParse(json['buyingPrice'].toString()) ?? 0.0
+      buyingPrice: json['buying_price'] != null
+          ? double.tryParse(json['buying_price'].toString()) ?? 0.0
           : 0.0,
-      sellingPrice: json['sellingPrice'] != null
-          ? double.tryParse(json['sellingPrice'].toString()) ?? 0.0
+      sellingPrice: json['saleing_price'] != null
+          ? double.tryParse(json['saleing_price'].toString()) ?? 0.0
           : 0.0,
       category: json['category'],
     );

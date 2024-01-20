@@ -1,6 +1,3 @@
-
-
-
 class ExtendedSale {
   final int id;
   final DateTime date;
@@ -24,27 +21,14 @@ class ExtendedSale {
 
   factory ExtendedSale.fromJson(Map<String, dynamic> json) {
     return ExtendedSale(
-      id: json['id'] as int,
-      date: DateTime.parse(json['date'] as String),
-      client: json['client'] as int,
-      clientName: json['client_name'] as String,
-      clientFirstName: json['client_first_name'] as String,
-      amountPaid: json['amountPaid'] as String,
-      total: json['total'] as double,
-      amountNotPaid: json['amount_not_paid'] as double,
+      id: json['id'],
+      date: DateTime.parse(json['date']),
+      client: json['client'],
+      clientName: json['client_name'],
+      clientFirstName: json['client_first_name'],
+      amountPaid: json['amountPaid'],
+      total: json['total'],
+      amountNotPaid: json['amount_not_paid'],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'date': date.toIso8601String(),
-      'client': client,
-      'client_name': clientName,
-      'client_first_name': clientFirstName,
-      'amountPaid': amountPaid,
-      'total': total,
-      'amount_not_paid': amountNotPaid,
-    };
   }
 }

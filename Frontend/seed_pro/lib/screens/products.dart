@@ -433,6 +433,7 @@ class _AddProductFormState extends State<AddProductForm> {
     print(newProduct.category);
     int? shop = int.tryParse(await getShopIdFromPrefs() as String);
     var newPoduct = await api.createProduct(newProduct);
+
     final newPoductInShop =
         ProductInShop(id: 0, quantity: 0, shop: shop!, product: newPoduct.id);
     await productinshopapi.createProductInShop(newPoductInShop);
