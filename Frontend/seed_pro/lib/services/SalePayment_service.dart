@@ -26,15 +26,18 @@ class SalePaymentApi {
 
   Future<List<SalePayment>> getSalePaymentsBySaleId(int saleId) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/salepayments/?sale=$saleId'),
+      Uri.parse('$baseUrl/api/salepayments/'),
       headers: await getHeaders(),
     );
 
     if (response.statusCode == 200) {
       Iterable list = json.decode(response.body);
-      return List<SalePayment>.from(
+
+      List<SalePayment> filteredList = List<SalePayment>.from(
         list.map((payment) => SalePayment.fromJson(payment)),
-      );
+      ).where((payment) => payment.sale == saleId).toList();
+
+      return filteredList;
     } else {
       throw Exception('Failed to load sale payments');
     }

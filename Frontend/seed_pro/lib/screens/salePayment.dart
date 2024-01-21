@@ -27,26 +27,43 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
 
   double totalPayments = 0;
   TextEditingController amountController = TextEditingController();
+  int paymentIndex = 0;
 
   @override
   void initState() {
     super.initState();
     loadPayments();
+    clear();
+    paymentIndex = 0;
+  }
 
-    i = 0;
+  void dispose() {
+    salePayments.clear();
+    amountController.dispose();
+    setState(() {
+      i = 0;
+    });
+    super.dispose();
+  }
+
+  void clear() {
+    setState(() {
+      salePayments.clear();
+    });
   }
 
   Future<void> loadPayments() async {
     try {
-      List<SalePayment> loadedPayments = (await SalePaymentApi(baseurl)
-              .getSalePaymentsBySaleId(widget.sale.id))
-          .cast<SalePayment>();
+      clear();
+
+      List<SalePayment> loadedPayments = await SalePaymentApi(baseurl)
+          .getSalePaymentsBySaleId(widget.sale.id) as List<SalePayment>;
 
       setState(() {
         salePayments = loadedPayments;
         totalPayments =
             salePayments.fold(0, (sum, payment) => sum + payment.amount);
-        i = 0;
+        paymentIndex = 0;
       });
     } catch (e) {
       print('Error loading sale payments: $e');
@@ -79,6 +96,7 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
     } catch (e) {
       print('Error adding sale payment: $e');
     }
+    salePayments.clear();
   }
 
   Future<ExtendedSale> getTSale() async {
@@ -131,6 +149,7 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
                         IconButton(
                           onPressed: () {
                             Navigator.pop(context);
+                            clear();
                           },
                           icon: Icon(
                             Icons.arrow_back,
@@ -205,12 +224,10 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
                             ),
                           ),
                         ),
-
                         IconButton(
                           onPressed: () {},
                           icon: Icon(Icons.delete),
                         ),
-                        // Add an empty SizedBox to accommodate the delete icon
                       ],
                     ),
                   ),
@@ -307,7 +324,7 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
 
   Future<void> _showAddPaymentDialog() async {
     double amount = 0.0;
-
+    clear();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -345,8 +362,9 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
                   CustomElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      salePayments.clear();
+
                       _addSalePayment(amount);
+
                       amountController.clear();
                     },
                     buttonText: 'Add Payment',

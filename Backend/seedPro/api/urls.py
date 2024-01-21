@@ -17,6 +17,7 @@ urlpatterns = [
     # Employee-related endpoints
     path('employees/<int:pk>/', views.RetrieveUpdateEmployeeView.as_view(), name='retrieve_update_employee'), ## get put employee works
     path('employees/', views.ListEmployeesView.as_view(), name='list_employees'), #display emplyees works
+    path('employees/shop/<int:shop_id>/', views.ListEmployeesInShopView.as_view(), name='list_employees_in_shop'),
 
     # Payment Transaction endpoints
     path('paymenttransactions/add/', views.PaymentTransactionCreateView.as_view(), name='add_payment_transaction'), #works

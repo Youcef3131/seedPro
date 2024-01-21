@@ -132,6 +132,19 @@ class RetrieveEmployeeView(generics.RetrieveAPIView):
 class ListEmployeesView(generics.ListAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    
+class ListEmployeesInShopView(generics.ListAPIView):
+    serializer_class = EmployeeSerializer
+
+    def get_queryset(self):
+        # Get the shop_id from the URL parameters
+        shop_id = self.kwargs['shop_id']
+        
+        # Retrieve the shop or return a 404 response if not found
+        shop = get_object_or_404(Shop, pk=shop_id)
+        
+        # Filter employees based on the specified shop
+        return Employee.objects.filter(shop=shop)
 
 # get put employee
 

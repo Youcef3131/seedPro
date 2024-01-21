@@ -17,9 +17,6 @@ void main() {
   runApp(const MyApp());
 }
 
-
-
-
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -41,7 +38,7 @@ class MyApp extends StatelessWidget {
         '/transfers': (context) => Transfers(),
         '/compositions': (context) => Compositions(),
         '/coasts': (context) => Coasts(),
-        '/employees': (context) => Employee(),
+        '/employees': (context) => EmployeeScreen(),
         '/addshops': (context) => Addshops(),
       },
     );
