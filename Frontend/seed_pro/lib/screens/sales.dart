@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
+
 import 'package:intl/intl.dart';
 import 'package:seed_pro/globales.dart';
 import 'package:seed_pro/models/cleint_model.dart';

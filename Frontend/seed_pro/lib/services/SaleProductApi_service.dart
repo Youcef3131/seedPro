@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:seed_pro/models/saleproduct_model.dart';
+import 'package:seed_pro/screens/products.dart';
 import 'package:seed_pro/services/authentication_service.dart';
 
 class SaleProductApi {
@@ -42,7 +43,7 @@ class SaleProductApi {
   Future<SaleProduct> updateSaleProduct(SaleProduct updatedSaleProduct) async {
     final response = await http.put(
       Uri.parse(
-        '$baseUrl/saleproduct/${updatedSaleProduct.id}/',
+        '$baseUrl/api/saleproduct/${updatedSaleProduct.id}/',
       ),
       body: jsonEncode(updatedSaleProduct.toJson()),
       headers: await getHeaders(),
@@ -57,12 +58,26 @@ class SaleProductApi {
 
   Future<void> deleteSaleProduct(int saleProductId) async {
     final response = await http.delete(
-      Uri.parse('$baseUrl/saleproduct/$saleProductId/'),
+      Uri.parse('$baseUrl/api/saleproduct/$saleProductId/'),
       headers: await getHeaders(),
     );
 
     if (response.statusCode != 204) {
       throw Exception('Failed to delete sale product');
+    }
+  }
+
+  Future<SaleProduct> AddSaleProduct(SaleProduct newSaleProduct) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/saleproduct/'),
+      body: jsonEncode(newSaleProduct.toJson()),
+      headers: await getHeaders(),
+    );
+
+    if (response.statusCode == 201) {
+      return SaleProduct.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to create new sale product');
     }
   }
 }

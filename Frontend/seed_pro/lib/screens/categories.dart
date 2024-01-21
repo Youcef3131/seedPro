@@ -199,10 +199,13 @@ class _CategoriesState extends State<Categories> {
       body: Row(
         children: [
           Container(
-              width: 200.0,
-              color: AppColors.lightGrey,
-              child: Padding(
-                  padding: const EdgeInsets.all(20.0), child: Sidebar())),
+            width: 200.0,
+            color: AppColors.lightGrey,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Sidebar(),
+            ),
+          ),
           Expanded(
             child: SingleChildScrollView(
               child: Container(
