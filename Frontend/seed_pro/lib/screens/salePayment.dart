@@ -345,6 +345,7 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
                   CustomElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
+                      salePayments.clear();
                       _addSalePayment(amount);
                       amountController.clear();
                     },

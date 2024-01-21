@@ -39,115 +39,118 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: double.infinity,
       width: 200.0,
       color: AppColors.lightGrey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 15,
-          ),
-          Image.asset('images/logo.png'),
-          SizedBox(height: 20),
-          Text(
-            '   OVERVIEW',
-            style: TextStyle(color: AppColors.grey, fontSize: 12.0),
-          ),
-          SizedBox(height: 10),
-          SidebarItem(
-            routeName: '/dashboard',
-            icon: Icons.dashboard,
-            text: 'Dashboard',
-          ),
-          SidebarItem(
-            routeName: '/categories',
-            icon: Icons.category,
-            text: 'Categories',
-          ),
-          SidebarItem(
-            routeName: '/products',
-            icon: Icons.shopping_cart,
-            text: 'Products',
-          ),
-          SidebarItem(
-            routeName: '/clients',
-            icon: Icons.person,
-            text: 'Clients',
-          ),
-          SidebarItem(
-            routeName: '/sales',
-            icon: Icons.monetization_on,
-            text: 'Sales',
-          ),
-          SidebarItem(
-            routeName: '/suppliers',
-            icon: Icons.local_shipping,
-            text: 'Suppliers',
-          ),
-          master == true
-              ? SidebarItem(
-                  routeName: '/purchases',
-                  icon: Icons.add_shopping_cart,
-                  text: 'Purchases',
-                )
-              : Container(),
-          SidebarItem(
-            routeName: '/transfers',
-            icon: Icons.compare_arrows,
-            text: 'Transfers',
-          ),
-          master == false
-              ? SidebarItem(
-                  routeName: '/compositions',
-                  icon: Icons.recycling_sharp,
-                  text: 'Compositions',
-                )
-              : Container(),
-          SidebarItem(
-            routeName: '/coasts',
-            icon: Icons.money,
-            text: 'Coasts',
-          ),
-          SidebarItem(
-            routeName: '/employees',
-            icon: Icons.people,
-            text: 'Employees',
-          ),
-          master == true
-              ? SidebarItem(
-                  routeName: '/addshops',
-                  icon: Icons.add_location,
-                  text: 'Add Shops',
-                )
-              : Container(),
-          SizedBox(height: 40),
-          Text(
-            '   OTHER',
-            style: TextStyle(color: AppColors.grey, fontSize: 12.0),
-          ),
-          SizedBox(height: 10),
-          GestureDetector(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.logout,
-                    color: Colors.red,
-                  ),
-                  SizedBox(width: 10.0),
-                  Text(
-                    'Logout',
-                    style: TextStyle(color: AppColors.grey),
-                  )
-                ],
-              ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 15,
             ),
-            onTap: () {
-              //logoutButton
-            },
-          )
-        ],
+            Image.asset('images/logo.png'),
+            SizedBox(height: 20),
+            Text(
+              '   OVERVIEW',
+              style: TextStyle(color: AppColors.grey, fontSize: 12.0),
+            ),
+            SizedBox(height: 10),
+            SidebarItem(
+              routeName: '/dashboard',
+              icon: Icons.dashboard,
+              text: 'Dashboard',
+            ),
+            SidebarItem(
+              routeName: '/categories',
+              icon: Icons.category,
+              text: 'Categories',
+            ),
+            SidebarItem(
+              routeName: '/products',
+              icon: Icons.shopping_cart,
+              text: 'Products',
+            ),
+            SidebarItem(
+              routeName: '/clients',
+              icon: Icons.person,
+              text: 'Clients',
+            ),
+            SidebarItem(
+              routeName: '/sales',
+              icon: Icons.monetization_on,
+              text: 'Sales',
+            ),
+            SidebarItem(
+              routeName: '/suppliers',
+              icon: Icons.local_shipping,
+              text: 'Suppliers',
+            ),
+            master == true
+                ? SidebarItem(
+                    routeName: '/purchases',
+                    icon: Icons.add_shopping_cart,
+                    text: 'Purchases',
+                  )
+                : Container(),
+            SidebarItem(
+              routeName: '/transfers',
+              icon: Icons.compare_arrows,
+              text: 'Transfers',
+            ),
+            master == false
+                ? SidebarItem(
+                    routeName: '/compositions',
+                    icon: Icons.recycling_sharp,
+                    text: 'Compositions',
+                  )
+                : Container(),
+            SidebarItem(
+              routeName: '/coasts',
+              icon: Icons.money,
+              text: 'Coasts',
+            ),
+            SidebarItem(
+              routeName: '/employees',
+              icon: Icons.people,
+              text: 'Employees',
+            ),
+            master == true
+                ? SidebarItem(
+                    routeName: '/addshops',
+                    icon: Icons.add_location,
+                    text: 'Add Shops',
+                  )
+                : Container(),
+            SizedBox(height: 40),
+            Text(
+              '   OTHER',
+              style: TextStyle(color: AppColors.grey, fontSize: 12.0),
+            ),
+            SizedBox(height: 10),
+            GestureDetector(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.logout,
+                      color: Colors.red,
+                    ),
+                    SizedBox(width: 10.0),
+                    Text(
+                      'Logout',
+                      style: TextStyle(color: AppColors.grey),
+                    )
+                  ],
+                ),
+              ),
+              onTap: () {
+                //logoutButton
+              },
+            )
+          ],
+        ),
       ),
     );
   }
