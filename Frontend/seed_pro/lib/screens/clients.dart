@@ -8,15 +8,15 @@ import 'package:seed_pro/widgets/button.dart';
 import 'package:seed_pro/widgets/colors.dart';
 import 'package:seed_pro/widgets/sidebar.dart';
 
-class Clients extends StatefulWidget {
-  const Clients({super.key});
+class ClientsScreen extends StatefulWidget {
+  const ClientsScreen({super.key});
 
   @override
-  State<Clients> createState() => _ClientsState();
+  State<ClientsScreen> createState() => _ClientsScreenState();
 }
 
-class _ClientsState extends State<Clients> {
-  late List<Client> clients = [];
+class _ClientsScreenState extends State<ClientsScreen> {
+  late List<ClientT> clients = [];
   TextEditingController nameController = TextEditingController();
   TextEditingController familyNameController = TextEditingController();
   TextEditingController phoneController = TextEditingController();
@@ -70,7 +70,7 @@ class _ClientsState extends State<Clients> {
       return;
     }
 
-    Client newClient = Client(
+    ClientT newClient = ClientT(
       id: 0,
       familyName: familyNameController.text,
       phone: phoneController.text,
@@ -80,7 +80,7 @@ class _ClientsState extends State<Clients> {
       shop: shopId,
     );
 
-    Client createdClient = await ClientApi(baseurl).createClient(newClient);
+    ClientT createdClient = await ClientApi(baseurl).createClient(newClient);
     nameController.clear();
     familyNameController.clear();
     phoneController.clear();
@@ -205,7 +205,7 @@ class _ClientsState extends State<Clients> {
     );
   }
 
-  void _showUpdateClientDialog(Client client) {
+  void _showUpdateClientDialog(ClientT client) {
     nameController.text = client.name;
     familyNameController.text = client.familyName;
     phoneController.text = client.phone;
@@ -313,7 +313,7 @@ class _ClientsState extends State<Clients> {
                 SizedBox(height: 10),
                 CustomElevatedButton(
                   onPressed: () async {
-                    Client updatedClient = Client(
+                    ClientT updatedClient = ClientT(
                       id: client.id,
                       name: nameController.text,
                       familyName: familyNameController.text,

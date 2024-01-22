@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => Dashboard(),
         '/categories': (context) => Categories(),
         '/products': (context) => Products(),
-        '/clients': (context) => Clients(),
+        '/clients': (context) => ClientsScreen(),
         '/sales': (context) => Sales(),
         '/suppliers': (context) => Suppliers(),
         '/purchases': (context) => Purchases(),

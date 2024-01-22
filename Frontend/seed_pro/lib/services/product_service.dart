@@ -64,4 +64,21 @@ class ProductApi {
       throw Exception('Failed to update product');
     }
   }
+
+  Future<List<Product>> getBestSellingProducts() async {
+    var shopId = await getShopIdFromPrefs();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/best-selling-products/$shopId/'),
+      headers: await getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      Iterable list = json.decode(response.body);
+      return List<Product>.from(
+        list.map((product) => Product.fromJson(product)),
+      );
+    } else {
+      throw Exception('Failed to load best-selling products');
+    }
+  }
 }

@@ -93,7 +93,7 @@ def logout(request):
         return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)@api_view(["GET"])
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_shop_by_username(request, username):
     try:
         # First, try to find the user by username

@@ -24,7 +24,7 @@ class Sales extends StatefulWidget {
 class _SalesState extends State<Sales> {
   late List<ExtendedSale> sales = [];
   TextEditingController clientController = TextEditingController();
-  Client? selectedClient;
+  ClientT? selectedClient;
   @override
   void initState() {
     super.initState();
@@ -51,7 +51,7 @@ class _SalesState extends State<Sales> {
   }
 
   void _showAddSaleDialog() async {
-    List<Client> allClients = await ClientApi(baseurl).getClientsInShop();
+    List<ClientT> allClients = await ClientApi(baseurl).getClientsInShop();
 
     showDialog(
       context: context,
@@ -68,19 +68,19 @@ class _SalesState extends State<Sales> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Autocomplete<Client>(
+                  Autocomplete<ClientT>(
                     optionsBuilder: (TextEditingValue textEditingValue) {
                       return allClients.where((client) =>
                           '${client.name} ${client.familyName}'
                               .toLowerCase()
                               .contains(textEditingValue.text.toLowerCase()));
                     },
-                    onSelected: (Client selectedClient) {
+                    onSelected: (ClientT selectedClient) {
                       setState(() {
                         this.selectedClient = selectedClient;
                       });
                     },
-                    displayStringForOption: (Client client) =>
+                    displayStringForOption: (ClientT client) =>
                         '${client.name} ${client.familyName}',
                     fieldViewBuilder: (BuildContext context,
                         TextEditingController textEditingController,
@@ -109,8 +109,8 @@ class _SalesState extends State<Sales> {
                     },
                     optionsViewBuilder: (
                       BuildContext context,
-                      AutocompleteOnSelected<Client> onSelected,
-                      Iterable<Client> options,
+                      AutocompleteOnSelected<ClientT> onSelected,
+                      Iterable<ClientT> options,
                     ) {
                       return Container(
                         color: Colors.red,
@@ -165,7 +165,7 @@ class _SalesState extends State<Sales> {
     );
   }
 
-  Future<void> _handleAddSale(Client? selectedClient) async {
+  Future<void> _handleAddSale(ClientT? selectedClient) async {
     if (selectedClient != null) {
       Sale newSale = Sale(
         id: 0,
@@ -369,6 +369,7 @@ class _SalesState extends State<Sales> {
                                   ),
                                   IconButton(
                                     onPressed: () async {
+                                      print(sl.id.toString());
                                       await deletSales(sl.id);
                                     },
                                     icon: Icon(

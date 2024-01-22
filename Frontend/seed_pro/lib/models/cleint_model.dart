@@ -1,4 +1,4 @@
-class Client {
+class ClientT {
   final int id;
   final String name;
   final String familyName;
@@ -7,7 +7,7 @@ class Client {
   final String email;
   final int shop;
 
-  Client({
+  ClientT({
     required this.id,
     required this.name,
     required this.familyName,
@@ -17,8 +17,8 @@ class Client {
     required this.shop,
   });
 
-  factory Client.fromJson(Map<String, dynamic> json) {
-    return Client(
+  factory ClientT.fromJson(Map<String, dynamic> json) {
+    return ClientT(
       id: json['id'] as int,
       name: json['name'] as String,
       familyName: json['family_name'] as String,
