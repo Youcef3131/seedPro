@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:seed_pro/globales.dart';
+import 'package:seed_pro/models/logout_model.dart';
 import 'package:seed_pro/models/shop_model.dart';
+import 'package:seed_pro/services/authentication_service.dart';
+import 'package:seed_pro/services/logout_service.dart';
 import 'package:seed_pro/services/shop_service.dart';
 import 'package:seed_pro/widgets/colors.dart';
 
@@ -145,8 +149,8 @@ class _SidebarState extends State<Sidebar> {
                   ],
                 ),
               ),
-              onTap: () {
-                //logoutButton
+              onTap: () async {
+                performLogout(context, baseurl);
               },
             )
           ],
@@ -173,7 +177,7 @@ class SidebarItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.pushReplacementNamed(context, routeName); //
+        Navigator.pushReplacementNamed(context, routeName);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -195,5 +199,23 @@ class SidebarItem extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Future<void> performLogout(BuildContext context, String baseurl) async {
+  try {
+    var username = await getUsernameFromPrefs();
+    var password = await getPasswordFromPrefs();
+
+    var logoutRequest = LogoutRequest(username: username!, password: password!);
+
+    var logoutService = LogoutService(logoutRequest, baseurl);
+    await logoutService.logout();
+
+    removeAllInfoFromPrefs();
+
+    Navigator.pushReplacementNamed(context, '/login');
+  } catch (e) {
+    print('Error during logout: $e');
   }
 }

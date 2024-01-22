@@ -50,27 +50,30 @@ class AuthenticationService {
     debugPrint('Token saved securelyy: $token');
   }
 
-  Future<void> saveShopInfoLocally(String shopId, String username) async {
+  Future<void> saveShopInfoLocally(
+      String shopId, String username, String password) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('shop_id', shopId);
     await prefs.setString('username', username);
+    await prefs.setString('password', password);
     debugPrint(
-        'Shop information saved: Shop ID - $shopId, Username - $username');
+        'Shop information saved: Shop ID - $shopId, Username - $username  - $password');
   }
 }
-
-
-
 
 Future<String?> getTokenFromPrefs() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString('auth_token');
 }
 
-
 Future<String?> getUsernameFromPrefs() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString('username');
+}
+
+Future<String?> getPasswordFromPrefs() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('password');
 }
 
 Future<String?> getShopIdFromPrefs() async {
@@ -78,22 +81,15 @@ Future<String?> getShopIdFromPrefs() async {
   return prefs.getString('shop_id');
 }
 
-
-
-
-
 Future<Map<String, String>> getHeaders() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? authToken = prefs.getString('auth_token');
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? authToken = prefs.getString('auth_token');
 
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Token $authToken',
-    };
-  }
-
-
-
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': 'Token $authToken',
+  };
+}
 
 Future<void> removeAllInfoFromPrefs() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();

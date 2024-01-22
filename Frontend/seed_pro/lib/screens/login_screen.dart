@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           if (data.containsKey('id')) {
             final String shopId = data['id'].toString();
-            await authService.saveShopInfoLocally(shopId, username);
+            await authService.saveShopInfoLocally(shopId, username, password);
             Navigator.pushNamed(context, '/dashboard');
           } else {
             print('Shop ID not found in the response');
