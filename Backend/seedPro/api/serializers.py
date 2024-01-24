@@ -164,6 +164,7 @@ class SaleInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sale
         fields = ['id', 'date', 'client', 'client_name', 'client_first_name', 'amountPaid', 'total', 'amount_not_paid']
+        
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -175,6 +176,32 @@ class SaleInfoSerializer(serializers.ModelSerializer):
         data['total'] = total or Decimal('0.00')  # Convert float to Decimal here
         data['amount_not_paid'] = data['total'] - Decimal(data['amountPaid'])  # Convert float to Decimal here
         return data
+
+
+class PurchaseInfoSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField(source='supplier.name', read_only=True)
+    supplier_family_name = serializers.CharField(source='supplier.family_name', read_only=True)
+    total = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+    amount_not_paid = serializers.DecimalField(max_digits=15, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = Purchase
+        fields = ['id', 'date', 'supplier', 'supplier_name', 'supplier_family_name', 'amountPaidToSupplier', 'total', 'amount_not_paid']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        # Calculate total and amount_not_paid
+        total = PurchaseProduct.objects.filter(purchase=instance).aggregate(
+            total_amount=Sum(F('quantity_purchased') * F('product__buying_price')))['total_amount']
+
+        data['total'] = total or Decimal('0.00')  # Convert float to Decimal here
+        data['amount_not_paid'] = data['total'] - Decimal(data['amountPaidToSupplier'])  # Convert float to Decimal here
+        return data
+
+
+
+
 
 class SaleProductDetailSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.description', read_only=True)

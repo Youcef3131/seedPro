@@ -109,7 +109,7 @@ path('employees/<int:employee_id>/<str:method>/<int:month>/<int:year>/', views.E
 
     path('purchaseproduct/', views.PurchaseProductListCreateView.as_view(), name='purchaseproduct-list-create'),
     path('purchaseproduct/<int:pk>/', views.PurchaseProductRetrieveUpdateDestroyView.as_view(), name='purchaseproduct-retrieve-update-destroy'),
-    
+   
     path('purchases/shop/<int:shop_id>/', views.PurchaseListByShopView.as_view(), name='purchase-list-by-shop'),
     path('purchases/supplier/<int:supplier_id>/', views.PurchaseListBySupplierView.as_view(), name='purchase-list-by-supplier'),
     path('purchaseproducts/purchase/<int:purchase_id>/', views.PurchaseProductListByPurchaseView.as_view(), name='purchaseproduct-list-by-purchase'),

@@ -481,6 +481,17 @@ class AllSalesInfoView(APIView):
         # Return the serialized data as a JSON response
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class AllPurchaseInfoView(APIView):
+    def get(self, request, shop_id):
+        # Retrieve purchase data for the given shop_id
+        purchases = Purchase.objects.filter(supplier__shop_id=shop_id)
+
+        # Serialize the data using PurchaseInfoSerializer
+        serializer = PurchaseInfoSerializer(purchases, many=True)
+
+        # Return the serialized data as a JSON response
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class SaleProductDetailView(APIView):
 
     def get(self, request, sale_id):
@@ -1357,7 +1368,7 @@ from datetime import *
 class ShopSalesLast5DaysAPIView(APIView):
     def get(self, request, shop_id):
         # Calculate the date 5 days ago from today
-        start_date = datetime.now() - timedelta(days=5)
+        start_date = datetime.now() - timedelta(days=6)
 
         # Query the sales for the specified shop in the last 5 days
         sales_last_5_days = Sale.objects.filter(
