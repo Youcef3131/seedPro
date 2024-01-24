@@ -43,7 +43,7 @@ class _DashboardState extends State<Dashboard> {
     loadData();
     loadproducts();
     loadclinets();
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
       loadData();
     });
   }
@@ -123,30 +123,6 @@ class _DashboardState extends State<Dashboard> {
                               children: [
                                 Column(
                                   children: [
-                                    Text(
-                                      'SALES IN LAST 5 DAYS',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: AppColors.green, width: 2),
-                                        borderRadius: BorderRadius.circular(30),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: SalesChart(salesNumber),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  children: [
                                     Row(
                                       children: [
                                         Icon(
@@ -193,6 +169,30 @@ class _DashboardState extends State<Dashboard> {
                                         label2: "PROFITS EVOULUTION PER YEAR",
                                         value2:
                                             "${profitsEvolutionYear.toStringAsFixed(2)}%"),
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    Text(
+                                      'SALES IN LAST 5 DAYS',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: AppColors.green, width: 2),
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: SalesChart(salesNumber),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ],

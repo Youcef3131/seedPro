@@ -393,7 +393,10 @@ class _AddTransferFormState extends State<AddTransferForm> {
   Future<void> loadShops() async {
     try {
       shops = await ShopApi(baseurl).getShops();
-      setState(() {});
+
+      setState(() {
+        shops = shops.where((shop) => !shop.isMaster).toList();
+      });
     } catch (e) {
       print("Error loading shops: $e");
     }

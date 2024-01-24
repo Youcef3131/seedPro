@@ -97,11 +97,13 @@ class _SidebarState extends State<Sidebar> {
                     text: 'Purchases',
                   )
                 : Container(),
-            SidebarItem(
-              routeName: '/transfers',
-              icon: Icons.compare_arrows,
-              text: 'Transfers',
-            ),
+            master == true
+                ? SidebarItem(
+                    routeName: '/transfers',
+                    icon: Icons.compare_arrows,
+                    text: 'Transfers',
+                  )
+                : Container(),
             master == false
                 ? SidebarItem(
                     routeName: '/compositions',

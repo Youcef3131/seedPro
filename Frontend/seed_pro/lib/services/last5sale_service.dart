@@ -9,7 +9,6 @@ class LastSalesService {
 
   Future<List<int>> getSalesData() async {
     var shopId = await getShopIdFromPrefs();
-    print(shopId);
 
     try {
       final response = await http.get(
@@ -112,6 +111,7 @@ class LastSalesService {
 
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
+      
       return jsonData['evolution_rate_year_purchase'] ?? 0.0;
     } else {
       throw Exception(
@@ -122,6 +122,7 @@ class LastSalesService {
 
   Future<double> getProfitsEvolutionYear() async {
     var shopId = await getShopIdFromPrefs();
+
     final response = await http.get(
       Uri.parse('$baseUrl/api/profit-evolution-year/$shopId/'),
       headers: await getHeaders(),

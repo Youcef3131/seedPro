@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:seed_pro/globales.dart';
+import 'package:seed_pro/models/ProductDetails.dart';
 import 'package:seed_pro/models/extandedsale_model.dart';
 
 import 'package:seed_pro/models/product_model.dart';
+import 'package:seed_pro/models/productinshop_model.dart';
 
 import 'package:seed_pro/models/saleproduct_model.dart';
 import 'package:seed_pro/screens/salePayment.dart';
 import 'package:seed_pro/services/ExtandedSale_service.dart';
 import 'package:seed_pro/services/SaleProductApi_service.dart';
 import 'package:seed_pro/services/product_service.dart';
+import 'package:seed_pro/services/productdetails_service.dart';
 import 'package:seed_pro/widgets/appBar.dart';
 import 'package:seed_pro/widgets/button.dart';
 import 'package:seed_pro/widgets/colors.dart';
@@ -231,35 +234,65 @@ class _SaleDetailsState extends State<SaleDetails> {
   Future<void> _handleAddSaleProduct(
       Product? selectedProduct, int quantitySold) async {
     if (selectedProduct != null) {
-      var newsaletem = SaleProduct(
+      // Load all products in the shop
+      List<ProductDetails> productsInShop =
+          await ProductDetailsApi(baseurl).getProductsInShop();
+
+      // Find the product ID that matches the selected product
+      int selectedProductId = selectedProduct.id;
+
+      // Find the product in shop corresponding to the selected product
+      ProductDetails? selectedProductDetails = productsInShop.firstWhere(
+        (productDetails) => productDetails.id == selectedProductId,
+      );
+
+      if (selectedProductDetails != null &&
+          selectedProductDetails.quantity >= quantitySold) {
+        // Quantity is sufficient, proceed with adding the sale product
+        var newSaleItem = SaleProduct(
           id: 0,
           quantitySold: quantitySold,
-          productId: selectedProduct.id,
-          saleId: widget.sale.id);
-      await addSalesProduct(newsaletem);
-      var newTotal = await getTotal();
-      setState(() {
-        i = 0;
-      });
-      var updatedSale = ExtendedSale(
-        id: widget.sale.id,
-        clientName: widget.sale.clientName,
-        total: newTotal,
-        client: widget.sale.client,
-        date: widget.sale.date,
-        clientFirstName: widget.sale.clientFirstName,
-        amountPaid: widget.sale.amountPaid,
-        amountNotPaid: widget.sale.amountNotPaid,
-      );
-      setState(() {
-        widget.sale = updatedSale;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Product selected: ${selectedProduct.reference} '),
-          duration: Duration(seconds: 2),
-        ),
-      );
+          productId: selectedProductId,
+          saleId: widget.sale.id,
+        );
+
+        await addSalesProduct(newSaleItem);
+        var newTotal = await getTotal();
+        setState(() {
+          i = 0;
+        });
+
+        var updatedSale = ExtendedSale(
+          id: widget.sale.id,
+          clientName: widget.sale.clientName,
+          total: newTotal,
+          client: widget.sale.client,
+          date: widget.sale.date,
+          clientFirstName: widget.sale.clientFirstName,
+          amountPaid: widget.sale.amountPaid,
+          amountNotPaid: widget.sale.amountNotPaid,
+        );
+
+        setState(() {
+          widget.sale = updatedSale;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Product selected: ${selectedProduct.reference}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        // Quantity is insufficient, show a Snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Insufficient quantity available for ${selectedProduct.reference}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
