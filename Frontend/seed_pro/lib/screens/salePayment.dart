@@ -362,8 +362,16 @@ class _SalePaymentScreenState extends State<SalePaymentScreen> {
                   CustomElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-
-                      _addSalePayment(amount);
+                      if (totalPayments + amount > widget.sale.total) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error amount '),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } else {
+                        _addSalePayment(amount);
+                      }
 
                       amountController.clear();
                     },

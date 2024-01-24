@@ -26,9 +26,14 @@ class _CategoriesState extends State<Categories> {
   }
 
   Future<void> loadCategories() async {
-    categories = await CategoryApi(baseurl).getCategories();
+    try {
+      categories = await CategoryApi(baseurl).getCategories();
+      categories = categories.reversed.toList();
 
-    setState(() {});
+      setState(() {});
+    } catch (e) {
+      print("Error loading categories: $e");
+    }
   }
 
   Future<void> addCategory() async {

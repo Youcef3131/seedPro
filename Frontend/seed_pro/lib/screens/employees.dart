@@ -430,6 +430,15 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                       Container(
                         child: Expanded(
                           child: Text(
+                            'Username',
+                            style:
+                                TextStyle(fontSize: 20, color: AppColors.grey),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        child: Expanded(
+                          child: Text(
                             'Monthly salary',
                             style:
                                 TextStyle(fontSize: 20, color: AppColors.grey),
